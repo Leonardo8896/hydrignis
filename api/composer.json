@@ -1,0 +1,19 @@
+{
+    "name": "leonardo8896/hydrignis",
+    "description": "A project to my TCCC",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Leonardo8896\\Hydrignis\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Leonardo8896",
+            "email": "pkafonso8896@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/dotenv": "^7.2"
+    }
+}
