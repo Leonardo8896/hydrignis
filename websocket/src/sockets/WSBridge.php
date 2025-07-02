@@ -16,8 +16,8 @@ class WSBridge implements MessageComponentInterface {
 
     public function onOpen(ConnectionInterface $conn) {
         // Store the new connection to send messages to later
-        $key = $conn->httpRequest->getHeaderLine("WS_KEY");
-        $type = $conn->httpRequest->getHeaderLine("TYPE");
+        $key = $conn->httpRequest->getHeaderLine("X-Ws-Key");
+        $type = $conn->httpRequest->getHeaderLine("X-Type");
         if ($key == $_ENV["KEY"]) {
             if($type == "device") {
                 $this->devices->attach($conn);
