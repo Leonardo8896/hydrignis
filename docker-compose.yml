@@ -1,0 +1,9 @@
+services:
+  websocket:
+    image: php:8.4-cli
+    volumes:
+      - ./websocket:/app
+    working_dir: /app
+    command: php index.php
+    ports:
+      - '8000:8000'
