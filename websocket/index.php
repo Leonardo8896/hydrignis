@@ -9,8 +9,8 @@ use Ratchet\WebSocket\WsServer;
 use Symfony\Component\Dotenv\Dotenv;
 
 $path_env = __DIR__."/.env";
+$dotenv = new Dotenv();
 if (file_exists($path_env)){
-    $dotenv = new Dotenv();
     $dotenv->load($path_env);
 }
 
