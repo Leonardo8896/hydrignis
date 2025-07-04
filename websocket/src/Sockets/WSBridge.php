@@ -1,6 +1,7 @@
 <?php
 namespace Hydrignis\Websocket\Sockets;
 
+use Hydrignis\Websocket\Model\IgnisPlayload;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 
@@ -42,8 +43,11 @@ class WSBridge implements MessageComponentInterface {
 
     public function onMessage(ConnectionInterface $from, $msg) {
         if ($this->devices->contains($from)) {
+            $ignis = new IgnisPlayload($msg);
+            $playload = $ignis->getIgnislog();
+            echo json_encode($playload);
             foreach ($this->mobiles as $mobile) {
-                $mobile->send($msg);
+                $mobile->send(json_encode($playload));
             }
             return;
         }
