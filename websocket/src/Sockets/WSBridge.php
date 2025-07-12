@@ -43,9 +43,22 @@ class WSBridge implements MessageComponentInterface {
 
     public function onMessage(ConnectionInterface $from, $msg) {
         if ($this->devices->contains($from)) {
+            // $array = array_values(unpack('f*',$msg));
+            // var_dump(value: $array);
+            // echo (strlen($msg)/4).PHP_EOL;
+            $json = json_decode($msg);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                foreach ($this->mobiles as $mobile) {
+                    $mobile->send($json);
+                    return;
+                }
+            }
             $ignis = new IgnisPlayload($msg);
             $playload = $ignis->getIgnislog();
-            echo json_encode($playload);
+            if (!$playload) {
+                return;
+            }
+            // echo json_encode($playload).PHP_EOL;
             foreach ($this->mobiles as $mobile) {
                 $mobile->send(json_encode($playload));
             }
