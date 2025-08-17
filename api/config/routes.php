@@ -2,13 +2,27 @@
 
 use Leonardo8896\Hydrignis\Controllers\{
     TestServerController,
-    AccountController
+    AccountController,
+    DevicesController
 };
 
 require_once "../vendor/autoload.php";
 
 return [
-    "/|GET" => [TestServerController::class, "index"],
-    "/account/login|POST" => [AccountController::class, "login"],
-    "/account/register|POST" => [AccountController::class, "register"]
+    "/|GET" => [
+        "handler" => [TestServerController::class, "index"],
+        "auth" => false,
+    ],
+    "/account/login|POST" => [
+        "handler" => [AccountController::class, "login"],
+        "auth" => false,
+    ],
+    "/account/register|POST" => [
+        "handler" => [AccountController::class, "register"],
+        "auth" => false,
+    ],
+    "/devices|GET" => [
+        "handler" => [DevicesController::class, "index"],
+        "auth" => true,
+    ],
 ];
