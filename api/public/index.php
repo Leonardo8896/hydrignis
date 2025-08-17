@@ -5,8 +5,8 @@ require_once "../config/default-directories.php";
 use Leonardo8896\Hydrignis\Controllers\Erro404Controller;
 use Symfony\Component\Dotenv\Dotenv;
 
-//$enviroment = new Dotenv();
-//$enviroment->load(__DIR__.'/../.env');
+$enviroment = new Dotenv();
+$enviroment->load(__DIR__.'/../.env');
 
 $routes = require_once "../config/routes.php";
 $requestPath = $_SERVER['PATH_INFO'] ?? '/';
