@@ -1,6 +1,6 @@
 <?php
 
-namespace Leonardo8896\Hydrignis\Database\Repository\Interface;
+namespace Leonardo8896\Hydrignis\Database\Repository;
 
 use Leonardo8896\Hydrignis\Model\User;
 
