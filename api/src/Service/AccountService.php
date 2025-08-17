@@ -2,6 +2,7 @@
 
 namespace Leonardo8896\Hydrignis\Service;
 
+use Leonardo8896\Hydrignis\Database\Core\ConnectionCreator;
 use Leonardo8896\Hydrignis\Database\Repository\UserRepository;
 use Leonardo8896\Hydrignis\Exceptions\AccountException;
 use Leonardo8896\Hydrignis\Model\User;
@@ -42,7 +43,7 @@ class AccountService
             "user_email" => $this->email
         ];
 
-        return JWT::encode($playload, $_ENV["TOKENS_API"], 'HS256');
+        return JWT::encode($playload, $_ENV["TOKENS_KEY"], 'HS256');
     }
 
     public function register(string $password): string
@@ -56,6 +57,19 @@ class AccountService
         }
 
         $this->user = new User($this->email, $this->name, User::hashPassword($password));
+        $this->userRepository->save($this->user);
         return $this->saveCredentials();
+    }
+
+    static public function checkToken(string $token): bool|User
+    {
+        try {
+            $decoded = JWT::decode($token, new Key($_ENV["TOKENS_KEY"], 'HS256'));
+            $userRepository = new UserRepository(ConnectionCreator::createPDOConnection());
+            $user = $userRepository->searchByEmail($decoded->user_email);
+            return $user;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }
