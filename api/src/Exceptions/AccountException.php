@@ -4,8 +4,8 @@ namespace Leonardo8896\Hydrignis\Exceptions;
 
 class AccountException extends \DomainException
 {
-    public function __construct()
+    public function __construct($message)
     {
-        parent::__construct("Conta inexistente ou senha incorreta.");
+        parent::__construct($message);
     }
 }
