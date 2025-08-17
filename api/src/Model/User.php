@@ -17,8 +17,15 @@ class User
         return password_verify($password, $this->password_hash);
     }
 
-    public function hashPassword(string $password): string
+    static public function hashPassword(string $password): string
     {
         return password_hash($password, PASSWORD_ARGON2ID);
+    }
+
+    static public function checkStrength(string $password): bool
+    {
+        return strpbrk($password, "ABCDEFGHIJKLMNOPQRSTUVWXYZ") 
+            && strpbrk($password, "!@#$%&*?")
+            && strlen($password) >= 8;
     }
 }
