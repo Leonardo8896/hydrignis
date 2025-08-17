@@ -17,6 +17,11 @@ class User
         return password_verify($password, $this->password_hash);
     }
 
+    public function getPassword(): string
+    {
+        return $this->password_hash;
+    }
+
     static public function hashPassword(string $password): string
     {
         return password_hash($password, PASSWORD_ARGON2ID);
