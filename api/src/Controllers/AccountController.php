@@ -12,22 +12,22 @@ class AccountController
     {
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
         if (!$email) {
-            throw new FieldException();
+            http_response_code(400);
+            echo json_encode(['error' => 'Preencha o email corretamente']);
+            return;
         }
 
         $password = filter_input(INPUT_POST, 'password');
         if (!$password) {
-            throw new FieldException();
+            http_response_code(400);
+            echo json_encode(['error' => 'Preencha a senha']);
+            return;
         }
 
         $userRepository = new UserRepository(ConnectionCreator::createPDOConnection());
         $accountService = new AccountService($userRepository, $email);
         try {
             $token = $accountService->login($password);
-        } catch (FieldException $e) {
-            http_response_code(400);
-            echo json_encode(['error' => $e->getMessage()]);
-            return;
         } catch (AccountException $e) {
             http_response_code(401);
             echo json_encode(['error' => $e->getMessage()]);
@@ -40,21 +40,20 @@ class AccountController
 
     public static function register(): void
     {
-        $name = filter_input(INPUT_POST, 'name');
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
-        $password = filter_input(INPUT_POST, 'password');
+        $data = json_decode(file_get_contents('php://input'), true);
+        $name = $data['name'] ?? null;
+        $email = $data['email'] ?? null;
+        $password = $data['password'] ?? null;
         if(!($name && $email && $password)) {
-            throw new FieldException();
+            http_response_code(400);
+            echo json_encode(['error' => 'Preencha todos os campos corretamente']);
+            return;
         }
         $userRepository = new UserRepository(ConnectionCreator::createPDOConnection());
         $accountService = new AccountService($userRepository, $email, $name);
 
         try {
             $token = $accountService->register($password);
-        } catch (FieldException $e) {
-            http_response_code(400);
-            echo json_encode(['error' => $e->getMessage()]);
-            return;
         } catch (AccountException $e) {
             http_response_code(401);
             echo json_encode(['error' => $e->getMessage()]);
