@@ -13,5 +13,15 @@ abstract class Device
         public readonly string $user_email
     ) {}
 
-    // Additional methods can be added here for device-specific logic
+    public function __serialize(): array
+    {
+        return [
+            'serial_number' => $this->serialNumber,
+            'name' => $this->name,
+            'last_connection' => $this->last_connection,
+            'location' => $this->location,
+            'type' => $this->type,
+            'user_email' => $this->user_email
+        ];
+    }
 }
