@@ -25,4 +25,8 @@ return [
         "handler" => [DevicesController::class, "index"],
         "auth" => true,
     ],
+    "/devices/detail|GET" => [
+        "handler" => [DevicesController::class, "show"],
+        "auth" => true,
+    ],
 ];
