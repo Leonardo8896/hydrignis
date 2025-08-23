@@ -25,8 +25,12 @@ return [
         "handler" => [DevicesController::class, "index"],
         "auth" => true,
     ],
-    "/devices/detail|GET" => [
-        "handler" => [DevicesController::class, "show"],
+    "/devices/detail/igniszero|GET" => [
+        "handler" => [DevicesController::class, "detailsIgnisZero"],
+        "auth" => true,
+    ],
+    "/devices/detail/hydralize|GET" => [
+        "handler" => [DevicesController::class, "detailsHydralize"],
         "auth" => true,
     ],
 ];
