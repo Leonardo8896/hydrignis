@@ -53,13 +53,14 @@ class DeviceRepository
 
     private function hydrateIgnisZero(array $data): IgnisZero
     {
+        // var_dump($data);
+        // die;
         return new IgnisZero(
             $data['serial_number'],
             $data['name'],
-            $data['last_connection'],
             $data['location'],
             $data['type'],
-            $data['user_email']
+            $data['last_connection']
         );
     }
 
@@ -71,8 +72,7 @@ class DeviceRepository
             $data['name'],
             $data['last_connection'],
             $data['location'],
-            $data['type'],
-            $data['user_email']
+            $data['type']
         );
     }
 }

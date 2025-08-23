@@ -12,10 +12,9 @@ class IgnisZero extends Device
     public function __construct(
         string $serialNumber,
         string $name,
-        string $last_connection,
         string $location,
         string $type,
-        string $user_email,
+        ?string $last_connection = null,
         public readonly array $fireAccidents = [],
         public readonly array $dailyLogs = []
     )
@@ -23,10 +22,9 @@ class IgnisZero extends Device
         parent::__construct(
             $serialNumber,
             $name,
-            $last_connection,
             $location,
             $type,
-            $user_email
+            $last_connection,
         );
     }
 }
