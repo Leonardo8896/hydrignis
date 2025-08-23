@@ -3,8 +3,16 @@
 namespace Leonardo8896\Hydrignis\Controllers;
 
 use Leonardo8896\Hydrignis\Database\Core\ConnectionCreator;
+use Leonardo8896\Hydrignis\Database\Repository\HydralizeDailyLogRepository;
 use Leonardo8896\Hydrignis\Model\User;
-use Leonardo8896\Hydrignis\Database\Repository\DeviceRepository;
+use Leonardo8896\Hydrignis\Database\Repository\{
+    DeviceRepository,
+    FireAccidentRepository,
+    GasAccidentRepository,
+    IgnisZeroDailyLogRepository,
+};
+use Leonardo8896\Hydrignis\Model\FireAccident;
+
 
 class DevicesController
 {
@@ -14,7 +22,7 @@ class DevicesController
         $deviceRepository = new DeviceRepository(ConnectionCreator::createPDOConnection());
         $devices = $deviceRepository->getDevicesByUserEmail($user->email);
         $devicesJson = array_map(function($device) {
-            return serialize($device);
+            return $device->toArray();
         }, $devices);
 
         http_response_code(200);
@@ -28,7 +36,7 @@ class DevicesController
         
     }
 
-    static public function device(User $user)
+    static public function detailsIgnisZero(User $user)
     {
         $serialNumber = filter_input(INPUT_GET, 'serial_number');
 
@@ -38,9 +46,63 @@ class DevicesController
             return;
         }
 
-        $deviceRepository = new DeviceRepository(ConnectionCreator::createPDOConnection());
-        $device = $deviceRepository->getDeviceBySerialNumber($serialNumber);
+        $fireAccidentRepository = new FireAccidentRepository(ConnectionCreator::createPDOConnection());
+        $fireAccidents = $fireAccidentRepository->getFireAccidentsByDeviceSerial($serialNumber);
 
+        $gasAccidentRepository = new GasAccidentRepository(ConnectionCreator::createPDOConnection());
+        $gasAccidents = $gasAccidentRepository->getGasAccidentByDeviceSerial($serialNumber);
+
+        $dailyLogsRepository = new IgnisZeroDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $dailyLogs = $dailyLogsRepository->getDailyLogsByDeviceSerial($serialNumber);
+
+        $fireAccidentsArray = array_map(function($accidentF) {
+            return $accidentF->toArray();
+        }, $fireAccidents);
+        $gasAccidentsArray = array_map(function($accidentG) {
+            return $accidentG->toArray();
+        }, $gasAccidents);
+        $dailyLogsArray = array_map(function($log) {
+            return $log->toArray();
+        }, $dailyLogs);
+
+        http_response_code(200);
+        echo json_encode([
+            'user' => [
+                'email' => $user->email,
+                'name' => $user->name
+            ],
+            'fire_accidents' => $fireAccidentsArray,
+            'gas_accidents' => $gasAccidentsArray,
+            'daily_logs'=> $dailyLogs
+        ]);
+        
+    }
+
+    static function detailsHydralize(User $user)
+    {
+        // Logic to handle Hydralize device details
+        $serialNumber = filter_input(INPUT_GET, 'serial_number');
+
+        if (!$serialNumber) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Serial number is required']);
+            return;
+        }
+
+        $hydralizeRepository = new HydralizeDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $dailyLogs = $hydralizeRepository->getDailyLogsByDeviceSerial($serialNumber);
+        $dailyLogsArray = array_map(function($log) {
+            return $log->toArray();
+        }, $dailyLogs);
+
+        http_response_code(200);
+        echo json_encode([
+            'user' => [
+                'email' => $user->email,
+                'name' => $user->name
+            ],
+            'daily_logs' => $dailyLogsArray
+        ]);
         
     }
 }
