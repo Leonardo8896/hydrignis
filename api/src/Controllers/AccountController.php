@@ -10,14 +10,14 @@ class AccountController
 {
     public static function login(): void
     {
-        $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+        $data = json_decode(file_get_contents('php://input'), true);
+        $email = $data['email'] ?? null;
+        $password = $data['password'] ?? null;
         if (!$email) {
             http_response_code(400);
             echo json_encode(['error' => 'Preencha o email corretamente']);
             return;
         }
-
-        $password = filter_input(INPUT_POST, 'password');
         if (!$password) {
             http_response_code(400);
             echo json_encode(['error' => 'Preencha a senha']);
