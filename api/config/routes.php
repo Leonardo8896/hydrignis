@@ -33,4 +33,8 @@ return [
         "handler" => [DevicesController::class, "detailsHydralize"],
         "auth" => true,
     ],
+    "/devices/detail/summary|GET" => [
+        "handler" => [DevicesController::class, "summaryDevices"],
+        "auth" => true,
+    ],
 ];

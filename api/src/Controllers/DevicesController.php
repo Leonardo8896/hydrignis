@@ -103,6 +103,34 @@ class DevicesController
             ],
             'daily_logs' => $dailyLogsArray
         ]);
-        
+    }
+
+    static function summaryDevices(User $user): void
+    {
+        $count = filter_input(INPUT_GET,'count', FILTER_SANITIZE_NUMBER_INT) ?? 10;
+
+        $fireAccidentRepository = new FireAccidentRepository(ConnectionCreator::createPDOConnection());
+        $fireAccidents = $fireAccidentRepository->getByLastDays($count, true);
+
+        $gasAccidentRepository = new GasAccidentRepository(ConnectionCreator::createPDOConnection());
+        $gasAccidents = $gasAccidentRepository->getByLastDays($count, true);
+
+        $ignisZeroDailyLogRepository = new IgnisZeroDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $ignisZeroDailyLogs = $ignisZeroDailyLogRepository->getLast($count,true);
+
+        $hydralizeDailyLogRepository = new HydralizeDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $hydralizeDailyLogs = $hydralizeDailyLogRepository->getLast($count, true);
+
+        http_response_code(200);
+        echo json_encode([
+            'user' => [
+                'email' => $user->email,
+                'name' => $user->name
+            ],
+            'fire_accidents' => $fireAccidents,
+            'gas_accidents' => $gasAccidents,
+            'igniszero_daily_logs' => $ignisZeroDailyLogs,
+            'hydralize_daily_logs' => $hydralizeDailyLogs
+        ]);
     }
 }
