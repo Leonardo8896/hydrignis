@@ -19,6 +19,20 @@ class HydralizeDailyLogRepository
         return array_map([$this, "hydrateDailyLog"], $results);
     }
 
+    public function getLast(int $count, bool $associative = false): array
+    {
+        $presentDate = new \DateTime(date('Y-m-d'));
+        $lastDate = $presentDate->modify("-{$count} days")->format('Y-m-d');
+        $query = $this->pdo->prepare("SELECT * FROM HYDRALIZE_DAILY_LOG ORDER BY date DESC WHERE date >= :date");
+        $query->execute([":date" => $lastDate]);
+
+        $results = $query->fetchAll(\PDO::FETCH_ASSOC);
+        if ($associative) {
+            return $results;
+        }
+        return array_map([$this, "hydrateDailyLog"], $results);
+    }
+
     private function hydrateDailyLog(array $data): HydralizeDailyLog
     {
         return new HydralizeDailyLog(

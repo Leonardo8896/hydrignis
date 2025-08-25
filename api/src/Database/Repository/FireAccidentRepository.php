@@ -22,6 +22,22 @@ class FireAccidentRepository
         return array_map([$this, 'hydrateFireAccident'], $results);
     }
 
+    public function getByLastDays(int $count, int $associative = false): array
+    {
+        $datePresent = new \DateTime(date('Y-m-d'));
+        $lastDate = $datePresent->modify("-{$count} days");
+        $dateString = $lastDate->format('Y-m-d');
+        $query = $this->pdo->prepare("SELECT * FROM FIRE_ACCIDENT ORDER BY date DESC, time DESC WHERE date >= :date");
+        $query->bindParam(":date", $dateString);
+        $query->execute();
+
+        $results = $query->fetchAll(\PDO::FETCH_ASSOC);
+        if ($associative) {
+            return $results;
+        }
+        return array_map([$this, 'hydrateFireAccident'], $results);
+    }
+
     private function hydrateFireAccident(array $data): FireAccident
     {
         return new FireAccident(
