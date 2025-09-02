@@ -42,7 +42,11 @@ return [
         "auth"=> true,
     ],
     "/devices/detail/igniszero/fireaccident|POST"=> [
-        "handler"=> [DevicesController::class, "createFireAccidentIgnisZero"],
+        "handler"=> [DevicesController::class, "createFireAccident"],
+        "auth"=> true,
+    ],
+    "/devices/detail/igniszero/gasaccident|POST"=> [
+        "handler"=> [DevicesController::class, "createGasAccident"],
         "auth"=> true,
     ],
 ];

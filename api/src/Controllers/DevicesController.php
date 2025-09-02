@@ -4,6 +4,7 @@ namespace Leonardo8896\Hydrignis\Controllers;
 
 use Leonardo8896\Hydrignis\Database\Core\ConnectionCreator;
 use Leonardo8896\Hydrignis\Database\Repository\HydralizeDailyLogRepository;
+use Leonardo8896\Hydrignis\Model\GasAccident;
 use Leonardo8896\Hydrignis\Model\User;
 use Leonardo8896\Hydrignis\Database\Repository\{
     DeviceRepository,
@@ -203,5 +204,28 @@ class DevicesController
         http_response_code(500);
         header('Content-Type: application/json');
         echo json_encode(['erro' => 'An error occurred while recording the fire accident']);
+    }
+
+    static function createGasAccident(): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $date = $input['date'];
+        $time = $input['time'];
+        $serialNumber = $input['serial_number'];
+
+        $gasAccident = new GasAccident($date, $time, $serialNumber);
+        $gasAccidentRepository = new GasAccidentRepository(ConnectionCreator::createPDOConnection());
+
+        if ($gasAccidentRepository->save($gasAccident)) {
+            http_response_code(200);
+            header('Content-Type: application/json');
+            echo json_encode(['message' => 'Gas accident recorded successfully']);
+            return;
+        }
+
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode(['erro' => 'An error occurred while recording the gas accident']);
     }
 }

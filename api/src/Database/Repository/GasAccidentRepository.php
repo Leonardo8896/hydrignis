@@ -40,7 +40,17 @@ class GasAccidentRepository
         return new GasAccident(
             id: $data['id'],
             date: $data['date'],
-            time: $data['time']
+            time: $data['time'],
+            serialNumber: $data['IGNISZERO_device_serial_number']
         );
+    }
+
+    public function save(GasAccident $gasAccident): bool
+    {
+        $query = $this->pdo->prepare("INSERT INTO GAS_ACCIDENT (IGNISZERO_device_serial_number, date, time) VALUES (:serial_number, :date, :time)");
+        $query->bindParam(":serial_number", $gasAccident->serialNumber  );
+        $query->bindParam(":date", $gasAccident->date);
+        $query->bindParam(":time", $gasAccident->time);
+        return $query->execute();
     }
 }
