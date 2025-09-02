@@ -15,11 +15,13 @@ class AccountController
         $password = $data['password'] ?? null;
         if (!$email) {
             http_response_code(400);
+            header('Content-Type: application/json');
             echo json_encode(['error' => 'Preencha o email corretamente']);
             return;
         }
         if (!$password) {
             http_response_code(400);
+            header('Content-Type: application/json');
             echo json_encode(['error' => 'Preencha a senha']);
             return;
         }
@@ -30,11 +32,13 @@ class AccountController
             $token = $accountService->login($password);
         } catch (AccountException $e) {
             http_response_code(401);
+            header('Content-Type: application/json');
             echo json_encode(['error' => $e->getMessage()]);
             return;
         }
 
         http_response_code(200);
+        header('Content-Type: application/json');
         echo json_encode(["Session-token" => $token]);
     }
 
@@ -46,6 +50,7 @@ class AccountController
         $password = $data['password'] ?? null;
         if(!($name && $email && $password)) {
             http_response_code(400);
+            header('Content-Type: application/json');
             echo json_encode(['error' => 'Preencha todos os campos corretamente']);
             return;
         }
@@ -56,11 +61,13 @@ class AccountController
             $token = $accountService->register($password);
         } catch (AccountException $e) {
             http_response_code(401);
+            header('Content-Type: application/json');
             echo json_encode(['error' => $e->getMessage()]);
             return;
         }
 
         http_response_code(200);
+        header('Content-Type: application/json');
         echo json_encode(["Session-token" => $token]);
     }
 }
