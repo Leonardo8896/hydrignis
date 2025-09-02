@@ -19,12 +19,12 @@ class GasAccidentRepository
         return array_map([$this, 'hydrateGasAccident'], $results);
     }
 
-    public function getByLastDays(int $count, int $associative = false): array
+    public function getByLastDays(int $count, bool $associative = false): array
     {
         $datePresent = new \DateTime(date('Y-m-d'));
         $lastDate = $datePresent->modify("-{$count} days");
         $dateString = $lastDate->format('Y-m-d');
-        $query = $this->pdo->prepare("SELECT * FROM GAS_ACCIDENT ORDER BY date DESC, time DESC WHERE date >= :date");
+        $query = $this->pdo->prepare("SELECT * FROM GAS_ACCIDENT WHERE date >= :date ORDER BY date DESC, time DESC");
         $query->bindParam(":date", $dateString);
         $query->execute();
 
