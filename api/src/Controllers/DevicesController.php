@@ -26,6 +26,7 @@ class DevicesController
         }, $devices);
 
         http_response_code(200);
+        header('Content-Type: application/json');
         echo json_encode([
             'user' => [
                 'email' => $user->email,
@@ -42,6 +43,7 @@ class DevicesController
 
         if (!$serialNumber) {
             http_response_code(400);
+            header('Content-Type: application/json');
             echo json_encode(['error' => 'Serial number is required']);
             return;
         }
@@ -66,6 +68,7 @@ class DevicesController
         }, $dailyLogs);
 
         http_response_code(200);
+        header('Content-Type: application/json');
         echo json_encode([
             'user' => [
                 'email' => $user->email,
@@ -85,6 +88,7 @@ class DevicesController
 
         if (!$serialNumber) {
             http_response_code(400);
+            header('Content-Type: application/json');
             echo json_encode(['error' => 'Serial number is required']);
             return;
         }
@@ -96,6 +100,7 @@ class DevicesController
         }, $dailyLogs);
 
         http_response_code(200);
+        header('Content-Type: application/json');
         echo json_encode([
             'user' => [
                 'email' => $user->email,
@@ -122,6 +127,7 @@ class DevicesController
         $hydralizeDailyLogs = $hydralizeDailyLogRepository->getLast($count, true);
 
         http_response_code(200);
+        header('Content-Type: application/json');
         echo json_encode([
             'user' => [
                 'email' => $user->email,
@@ -132,5 +138,70 @@ class DevicesController
             'igniszero_daily_logs' => $ignisZeroDailyLogs,
             'hydralize_daily_logs' => $hydralizeDailyLogs
         ]);
+    }
+
+    static function createDevice(User $user): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($input['serial_number']) || !isset($input['type']) || !isset($input['location']) || !isset($input['name'])) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Some information is missing']);
+            return;
+        }
+
+        $serialNumber = $input['serial_number'];
+        $type = $input['type'];
+        $localtion = $input['location'];
+        $name = $input['name'];
+
+        $deviceRepository = new DeviceRepository(ConnectionCreator::createPDOConnection());
+        $existingDevice = $deviceRepository->getDeviceBySerialNumber($serialNumber);
+
+        if ($existingDevice) {
+            http_response_code(409);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Device with this serial number already exists']);
+            return;
+        }
+
+        $newDevice = $deviceRepository->createDevice($serialNumber, $name, $type, $localtion, $user->email);
+        if ($newDevice) {
+            http_response_code(201);
+            header('Content-Type: application/json');
+            echo json_encode([
+                'message' => 'Device created successfully',
+                'device' => $newDevice->toArray()
+            ]);
+            return;
+        } else {
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Failed to create device']);
+            return;
+        }
+    }
+
+    static function createFireAccident(): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $date = $input['date'];
+        $time = $input['time'];
+        $serialNumber = $input['serial_number'];
+
+        $fireAccident = new FireAccident($date, $time, $serialNumber);
+        $fireAccidentRepository = new FireAccidentRepository(ConnectionCreator::createPDOConnection());
+        if ($fireAccidentRepository->save($fireAccident)) {
+            http_response_code(200);
+            header('Content-Type: application/json');
+            echo json_encode(['message' => 'Fire accident recorded successfully']);
+            return;
+        }
+
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode(['erro' => 'An error occurred while recording the fire accident']);
     }
 }

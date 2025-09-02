@@ -37,4 +37,8 @@ return [
         "handler" => [DevicesController::class, "summaryDevices"],
         "auth" => true,
     ],
+    "/devices|POST"=> [
+        "handler"=> [DevicesController::class, "createDevice"],
+        "auth"=> true,
+    ]
 ];
