@@ -6,9 +6,9 @@ class Hydralize extends Device
     public function __construct(
         string $serialNumber,
         string $name,
-        string $last_connection,
         string $location,
         string $type,
+        ?string $last_connection = null,
         public readonly array $waterDailyLogs = []
     )
     {
