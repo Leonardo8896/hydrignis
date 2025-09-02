@@ -23,7 +23,7 @@ class IgnisZeroDailyLogRepository
     {
         $presentDate = new \DateTime(date('Y-m-d'));
         $lastDate = $presentDate->modify("-{$count} days")->format('Y-m-d');
-        $query = $this->pdo->prepare("SELECT * FROM IGNISZERO_DAILY_LOG ORDER BY date DESC WHERE date >= :date");
+        $query = $this->pdo->prepare("SELECT * FROM IGNISZERO_DAILY_LOG WHERE date >= :date ORDER BY date DESC");
         $query->execute([":date" => $lastDate]);
 
         $results = $query->fetchAll(\PDO::FETCH_ASSOC);
