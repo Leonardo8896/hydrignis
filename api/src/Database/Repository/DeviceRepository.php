@@ -70,9 +70,44 @@ class DeviceRepository
         return new Hydralize(
             $data['serial_number'],
             $data['name'],
-            $data['last_connection'],
             $data['location'],
             $data['type']
         );
     }
+
+    public function createDevice(string $serialNumber, string $name, string $type, string $location, string $userEmail): Device|bool
+    {
+        $query = $this->pdo->prepare("INSERT INTO DEVICES (serial_number, name, type, location, USERS_email) VALUES (:serial_number, :name, :type, :location, :user_email)");
+        $query->bindParam(":serial_number", $serialNumber);
+        $query->bindParam(":name", $name);
+        $query->bindParam(":type", $type);
+        $query->bindParam(":location", $location);
+        $query->bindParam(":user_email", $userEmail);
+        $result = $query->execute();
+        if($result) {
+            if ($type == "igniszero") {
+                return $this->hydrateIgnisZero([
+                    'serial_number' => $serialNumber,
+                    'name' => $name,
+                    'type' => $type,
+                    'location' => $location,
+                    'last_connection' => null
+                ]);
+            } else if ($type == 'hydralize') {
+                return $this->hydrateHydralize([
+                    'serial_number' => $serialNumber,
+                    'name' => $name,
+                    'type' => $type,
+                    'location'=> $location,
+                    'last_connection'=> null
+                ]);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+
 }
