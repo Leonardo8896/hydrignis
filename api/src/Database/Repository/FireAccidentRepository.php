@@ -22,12 +22,12 @@ class FireAccidentRepository
         return array_map([$this, 'hydrateFireAccident'], $results);
     }
 
-    public function getByLastDays(int $count, int $associative = false): array
+    public function getByLastDays(int $count, bool $associative = false): array
     {
         $datePresent = new \DateTime(date('Y-m-d'));
         $lastDate = $datePresent->modify("-{$count} days");
         $dateString = $lastDate->format('Y-m-d');
-        $query = $this->pdo->prepare("SELECT * FROM FIRE_ACCIDENT ORDER BY date DESC, time DESC WHERE date >= :date");
+        $query = $this->pdo->prepare("SELECT * FROM FIRE_ACCIDENT WHERE date >= :date ORDER BY date DESC, time DESC");
         $query->bindParam(":date", $dateString);
         $query->execute();
 
@@ -38,12 +38,25 @@ class FireAccidentRepository
         return array_map([$this, 'hydrateFireAccident'], $results);
     }
 
+    public function save(FireAccident $incident): bool
+    {
+        $query = $this->pdo->prepare("INSERT INTO FIRE_ACCIDENT (date, time, IGNISZERO_device_serial_number) VALUES (:date, :time, :serial_number)");
+        $query->bindParam(":date", $incident->date);
+        $query->bindParam(":time", $incident->time);
+        $query->bindParam(":serial_number", $incident->serialNumber);
+        return $query->execute();
+
+
+        
+    }
+
     private function hydrateFireAccident(array $data): FireAccident
     {
         return new FireAccident(
             id: $data['id'],
             date: $data['date'],
-            time: $data['time']
+            time: $data['time'],
+            serialNumber:$data['serial_number']
         );
     }
 }
