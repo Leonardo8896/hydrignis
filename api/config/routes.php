@@ -40,5 +40,9 @@ return [
     "/devices|POST"=> [
         "handler"=> [DevicesController::class, "createDevice"],
         "auth"=> true,
-    ]
+    ],
+    "/devices/detail/igniszero/fireaccident|POST"=> [
+        "handler"=> [DevicesController::class, "createFireAccidentIgnisZero"],
+        "auth"=> true,
+    ],
 ];
