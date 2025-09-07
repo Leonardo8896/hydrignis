@@ -41,4 +41,23 @@ class IgnisZeroDailyLogRepository
             $data['energy_consumption']
         );
     }
+
+    public function saveDailyLog(IgnisZeroDailyLog $data): ?IgnisZeroDailyLog
+    {
+        $query = $this->pdo->prepare("INSERT INTO IGNISZERO_DAILY_LOG (IGNISZERO_device_serial_number, date, energy_consumption) VALUES (:serial_number, :date, :energy_consumption)");
+        $query->bindParam(":serial_number", $data->serialNumber);
+        $query->bindParam(":date", $data->date);
+        $query->bindParam(":energy_consumption", $data->energyConsumption);
+        
+        if($query->execute()) {
+            $id = (int)$this->pdo->lastInsertId();
+            return new IgnisZeroDailyLog(
+                $data->serialNumber,
+                $data->date,
+                $data->energyConsumption,
+                $id
+            );
+        }
+        return null;
+    }
 }

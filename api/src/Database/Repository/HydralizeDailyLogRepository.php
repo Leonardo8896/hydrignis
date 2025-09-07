@@ -43,4 +43,28 @@ class HydralizeDailyLogRepository
             $data['battery_consumption'],
         );
     }
+
+    public function saveDailyLog(HydralizeDailyLog $dailyLog): ?HydralizeDailyLog
+    {
+        $query = $this->pdo->prepare("INSERT INTO HYDRALIZE_DAILY_LOG (HYDRALIZE_device_serial_number, date, water_consumption, energy_consumption, battery_consumption) VALUES (:serial_number, :date, :water_consumption, :energy_consumption, :battery_consumption)");
+        $query->bindParam(":serial_number", $dailyLog->serialNumber);
+        $query->bindParam(":date", $dailyLog->date);
+        $query->bindParam(":water_consumption", $dailyLog->water_production);
+        $query->bindParam(":energy_consumption", $dailyLog->energy_consumption);
+        $query->bindParam(":battery_consumption", $dailyLog->battery_consumption);
+
+        if ($query->execute()) {
+            $id = (int)$this->pdo->lastInsertId();
+            return new HydralizeDailyLog(
+                $dailyLog->serialNumber,
+                $dailyLog->date,
+                $dailyLog->water_production,
+                $dailyLog->energy_consumption,
+                $dailyLog->battery_consumption,
+                $id
+            );
+        }
+        return null;
+
+    }
 }
