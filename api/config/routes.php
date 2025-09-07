@@ -49,4 +49,12 @@ return [
         "handler"=> [DevicesController::class, "createGasAccident"],
         "auth"=> true,
     ],
+    "/devices/detail/igniszero/dailylog|POST"=> [
+        "handler"=> [DevicesController::class, "createIgnisDailyLog"],
+        "auth"=> true,
+    ],
+    "/devices/detail/hydralize/dailylog|POST"=> [
+        "handler"=> [DevicesController::class, "createHydralizeDailyLog"],
+        "auth"=> true,
+    ],
 ];

@@ -5,6 +5,8 @@ namespace Leonardo8896\Hydrignis\Controllers;
 use Leonardo8896\Hydrignis\Database\Core\ConnectionCreator;
 use Leonardo8896\Hydrignis\Database\Repository\HydralizeDailyLogRepository;
 use Leonardo8896\Hydrignis\Model\GasAccident;
+use Leonardo8896\Hydrignis\Model\HydralizeDailyLog;
+use Leonardo8896\Hydrignis\Model\IgnisZeroDailyLog;
 use Leonardo8896\Hydrignis\Model\User;
 use Leonardo8896\Hydrignis\Database\Repository\{
     DeviceRepository,
@@ -227,5 +229,77 @@ class DevicesController
         http_response_code(500);
         header('Content-Type: application/json');
         echo json_encode(['erro' => 'An error occurred while recording the gas accident']);
+    }
+
+    static function createIgnisDailyLog(): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($input['serial_number']) || !isset($input['water_leak']) || !isset($input['humidity']) || !isset($input['temperature']) || !isset($input['gas_level'])) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Some information is missing']);
+            return;
+        }
+
+        $serialNumber = $input['serial_number'];
+        $date = date('Y-m-d');
+        $energyConsumption = $input['energy_consumption'];
+
+        $dailyLog = new IgnisZeroDailyLog($serialNumber, $date, $energyConsumption);
+        $dailyLogRepository = new IgnisZeroDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $newLog = $dailyLogRepository->saveDailyLog($dailyLog);
+
+        if ($newLog) {
+            http_response_code(201);
+            header('Content-Type: application/json');
+            echo json_encode([
+                'message' => 'Daily log created successfully',
+                'daily_log' => $newLog->toArray()
+            ]);
+            return;
+        } else {
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Failed to create daily log']);
+            return;
+        }
+    }
+
+    static public function createHydralizeDailyLog(): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (!isset($input['serial_number']) || !isset($input['ph_level']) || !isset($input['turbidity']) || !isset($input['temperature']) || !isset($input['dissolved_oxygen'])) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Some information is missing']);
+            return;
+        }
+
+        $serialNumber = $input['serial_number'];
+        $date = date('Y-m-d');
+        $waterProduction = $input["water_production"];
+        $energyComsumption = $input["energy_consumption"];
+        $batteryComsumption = $input["battery_consumption"];
+
+        $dailyLog = new HydralizeDailyLog($serialNumber, $date, $waterProduction, $energyComsumption, $batteryComsumption);
+        $dailyLogRepository = new HydralizeDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $newLog = $dailyLogRepository->saveDailyLog($dailyLog);
+
+        if ($newLog) {
+            http_response_code(201);
+            header('Content-Type: application/json');
+            echo json_encode([
+                'message' => 'Daily log created successfully',
+                'daily_log' => $newLog->toArray()
+            ]);
+            return;
+        } else {
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Failed to create daily log']);
+            return;
+        }
     }
 }
