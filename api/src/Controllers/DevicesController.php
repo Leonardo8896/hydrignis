@@ -190,8 +190,8 @@ class DevicesController
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
-        $date = $input['date'];
-        $time = $input['time'];
+        $date = date('Y-m-d');
+        $time = date('H:i:s');
         $serialNumber = $input['serial_number'];
 
         $fireAccident = new FireAccident($date, $time, $serialNumber);
@@ -212,8 +212,8 @@ class DevicesController
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
-        $date = $input['date'];
-        $time = $input['time'];
+        $date = date('Y-m-d');
+        $time = date('H:i:s');
         $serialNumber = $input['serial_number'];
 
         $gasAccident = new GasAccident($date, $time, $serialNumber);
