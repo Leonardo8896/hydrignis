@@ -42,12 +42,17 @@ class IgnisZeroDailyLogRepository
         );
     }
 
-    public function saveDailyLog(IgnisZeroDailyLog $data): ?IgnisZeroDailyLog
+    public function saveDailyLog(IgnisZeroDailyLog $data, string $user_email): ?IgnisZeroDailyLog
     {
-        $query = $this->pdo->prepare("INSERT INTO IGNISZERO_DAILY_LOG (IGNISZERO_device_serial_number, date, energy_consumption) VALUES (:serial_number, :date, :energy_consumption)");
-        $query->bindParam(":serial_number", $data->serialNumber);
-        $query->bindParam(":date", $data->date);
-        $query->bindParam(":energy_consumption", $data->energyConsumption);
+        $serialNumber = $data->serialNumber;
+        $date = $data->date;
+        $energyConsumption = $data->energyConsumption;
+
+        $query = $this->pdo->prepare("INSERT INTO IGNISZERO_DAILY_LOG (IGNISZERO_device_serial_number, date, energy_consumption, IGNISZERO_device_USERS_email) VALUES (:serial_number, :date, :energy_consumption, :user_email)");
+        $query->bindParam(":serial_number", $serialNumber);
+        $query->bindParam(":date", $date);
+        $query->bindParam(":energy_consumption", $energyConsumption);
+        $query->bindParam(":user_email", $user_email);
         
         if($query->execute()) {
             $id = (int)$this->pdo->lastInsertId();
