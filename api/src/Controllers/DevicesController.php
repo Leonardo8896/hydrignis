@@ -186,7 +186,7 @@ class DevicesController
         }
     }
 
-    static function createFireAccident(): void
+    static function createFireAccident(User $user): void
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
@@ -196,7 +196,7 @@ class DevicesController
 
         $fireAccident = new FireAccident($date, $time, $serialNumber);
         $fireAccidentRepository = new FireAccidentRepository(ConnectionCreator::createPDOConnection());
-        if ($fireAccidentRepository->save($fireAccident)) {
+        if ($fireAccidentRepository->save($fireAccident, $user->email)) {
             http_response_code(200);
             header('Content-Type: application/json');
             echo json_encode(['message' => 'Fire accident recorded successfully']);
@@ -208,7 +208,7 @@ class DevicesController
         echo json_encode(['erro' => 'An error occurred while recording the fire accident']);
     }
 
-    static function createGasAccident(): void
+    static function createGasAccident(User $user): void
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
@@ -231,7 +231,7 @@ class DevicesController
         echo json_encode(['erro' => 'An error occurred while recording the gas accident']);
     }
 
-    static function createIgnisDailyLog(): void
+    static function createIgnisDailyLog(User $user): void
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
@@ -266,7 +266,7 @@ class DevicesController
         }
     }
 
-    static public function createHydralizeDailyLog(): void
+    static public function createHydralizeDailyLog(User $user): void
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
