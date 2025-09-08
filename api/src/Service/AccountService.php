@@ -67,6 +67,9 @@ class AccountService
             $decoded = JWT::decode($token, new Key($_ENV["TOKENS_KEY"], 'HS256'));
             $userRepository = new UserRepository(ConnectionCreator::createPDOConnection());
             $user = $userRepository->searchByEmail($decoded->user_email);
+            if ($user === null) {
+                return false;
+            }
             return $user;
         } catch (\Exception $e) {
             return false;
