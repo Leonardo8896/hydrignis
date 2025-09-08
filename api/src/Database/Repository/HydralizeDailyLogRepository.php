@@ -2,6 +2,7 @@
 
 namespace Leonardo8896\Hydrignis\Database\Repository;
 use Leonardo8896\Hydrignis\Model\HydralizeDailyLog;
+use Leonardo8896\Hydrignis\Model\User;
 
 class HydralizeDailyLogRepository
 {
@@ -44,14 +45,22 @@ class HydralizeDailyLogRepository
         );
     }
 
-    public function saveDailyLog(HydralizeDailyLog $dailyLog): ?HydralizeDailyLog
+    public function saveDailyLog(HydralizeDailyLog $dailyLog, User $user): ?HydralizeDailyLog
     {
-        $query = $this->pdo->prepare("INSERT INTO HYDRALIZE_DAILY_LOG (HYDRALIZE_device_serial_number, date, water_consumption, energy_consumption, battery_consumption) VALUES (:serial_number, :date, :water_consumption, :energy_consumption, :battery_consumption)");
-        $query->bindParam(":serial_number", $dailyLog->serialNumber);
-        $query->bindParam(":date", $dailyLog->date);
-        $query->bindParam(":water_consumption", $dailyLog->water_production);
-        $query->bindParam(":energy_consumption", $dailyLog->energy_consumption);
-        $query->bindParam(":battery_consumption", $dailyLog->battery_consumption);
+        $serialNumber = $dailyLog->serialNumber;
+        $date = $dailyLog->date;
+        $waterProduction = $dailyLog->water_production;
+        $energyProduction = $dailyLog->energy_production;
+        $batteryConsumption = $dailyLog->battery_consumption;
+        $user_email = $user->email;
+
+        $query = $this->pdo->prepare("INSERT INTO HYDRALIZE_DAILY_LOG (HYDRALIZE_device_serial_number, date, water_production, energy_production, battery_consumption, HYDRALIZE_device_USERS_email) VALUES (:serial_number, :date, :water_production, :energy_production, :battery_consumption, :user_email)");
+        $query->bindParam(":serial_number", $serialNumber);
+        $query->bindParam(":date", $date);
+        $query->bindParam(":water_production", $waterProduction);
+        $query->bindParam(":energy_production", $energyProduction);
+        $query->bindParam(":battery_consumption", $batteryConsumption);
+        $query->bindParam(":user_email", $user_email);
 
         if ($query->execute()) {
             $id = (int)$this->pdo->lastInsertId();
@@ -59,7 +68,7 @@ class HydralizeDailyLogRepository
                 $dailyLog->serialNumber,
                 $dailyLog->date,
                 $dailyLog->water_production,
-                $dailyLog->energy_consumption,
+                $dailyLog->energy_production,
                 $dailyLog->battery_consumption,
                 $id
             );
