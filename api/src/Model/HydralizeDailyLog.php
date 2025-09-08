@@ -8,7 +8,7 @@ class HydralizeDailyLog
         public readonly int $serialNumber,
         public readonly string $date,
         public readonly float $water_production,
-        public readonly int $energy_consumption,
+        public readonly int $energy_production,
         public readonly int $battery_consumption,
         private ?int $id = null,
     ){}
@@ -20,7 +20,7 @@ class HydralizeDailyLog
             "serial_number" => $this->serialNumber,
             "date" => $this->date,
             "water_production" => $this->water_production,
-            "energy_consumption" => $this->energy_consumption,
+            "energy_consumption" => $this->energy_production,
             "battery_consumption" => $this->battery_consumption,
         ];
     }
