@@ -45,12 +45,16 @@ class GasAccidentRepository
         );
     }
 
-    public function save(GasAccident $gasAccident): bool
+    public function save(GasAccident $gasAccident, string $user_email): bool
     {
-        $query = $this->pdo->prepare("INSERT INTO GAS_ACCIDENT (IGNISZERO_device_serial_number, date, time) VALUES (:serial_number, :date, :time)");
-        $query->bindParam(":serial_number", $gasAccident->serialNumber  );
-        $query->bindParam(":date", $gasAccident->date);
-        $query->bindParam(":time", $gasAccident->time);
+        $date = $gasAccident->date;
+        $time = $gasAccident->time;
+        $serialNumber = $gasAccident->serialNumber;
+        $query = $this->pdo->prepare("INSERT INTO GAS_ACCIDENT (IGNISZERO_device_serial_number, date, time, IGNISZERO_device_USERS_email) VALUES (:serial_number, :date, :time, :user_email)");
+        $query->bindParam(":serial_number", $serialNumber  );
+        $query->bindParam(":date", $date);
+        $query->bindParam(":time", $time);
+        $query->bindParam(":user_email", $user_email);
         return $query->execute();
     }
 }

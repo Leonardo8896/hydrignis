@@ -38,12 +38,16 @@ class FireAccidentRepository
         return array_map([$this, 'hydrateFireAccident'], $results);
     }
 
-    public function save(FireAccident $incident): bool
+    public function save(FireAccident $incident, string $user_email): bool
     {
-        $query = $this->pdo->prepare("INSERT INTO FIRE_ACCIDENT (date, time, IGNISZERO_device_serial_number) VALUES (:date, :time, :serial_number)");
-        $query->bindParam(":date", $incident->date);
-        $query->bindParam(":time", $incident->time);
-        $query->bindParam(":serial_number", $incident->serialNumber);
+        $date = $incident->date;
+        $time = $incident->time;
+        $serialNumber = $incident->serialNumber;
+        $query = $this->pdo->prepare("INSERT INTO FIRE_ACCIDENT (date, time, IGNISZERO_device_serial_number, IGNISZERO_device_USERS_email) VALUES (:date, :time, :serial_number, :user_email)");
+        $query->bindParam(":date", $date);
+        $query->bindParam(":time", $time);
+        $query->bindParam(":serial_number", $serialNumber);
+        $query->bindParam(":user_email", $user_email);
         return $query->execute();
 
 
