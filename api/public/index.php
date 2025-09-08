@@ -7,6 +7,7 @@ use Leonardo8896\Hydrignis\Database\Core\ConnectionCreator;
 use Symfony\Component\Dotenv\Dotenv;
 use Leonardo8896\Hydrignis\Service\AccountService;
 
+date_default_timezone_set('America/Sao_Paulo');
 
 $enviroment = new Dotenv();
 $enviroment->load(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'.env');
