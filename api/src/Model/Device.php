@@ -9,7 +9,7 @@ abstract class Device
         public readonly string $name,
         public readonly string $location,
         public readonly string $type,
-        public readonly ?string $last_connection = null,
+        private ?string $last_connection = null,
     ) {}
 
     public function toArray(): array
