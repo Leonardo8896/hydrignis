@@ -3,18 +3,22 @@
 namespace Leonardo8896\Hydrignis\Controllers;
 
 use Leonardo8896\Hydrignis\Database\Core\ConnectionCreator;
-use Leonardo8896\Hydrignis\Database\Repository\HydralizeDailyLogRepository;
-use Leonardo8896\Hydrignis\Model\GasAccident;
-use Leonardo8896\Hydrignis\Model\HydralizeDailyLog;
-use Leonardo8896\Hydrignis\Model\IgnisZeroDailyLog;
-use Leonardo8896\Hydrignis\Model\User;
+use Leonardo8896\Hydrignis\Model\{
+    GasAccident,
+    HydralizeDailyLog,
+    IgnisZeroDailyLog,
+    Hydralize,
+    IgnisZero,
+    User,
+    FireAccident
+};
 use Leonardo8896\Hydrignis\Database\Repository\{
     DeviceRepository,
     FireAccidentRepository,
     GasAccidentRepository,
     IgnisZeroDailyLogRepository,
+    HydralizeDailyLogRepository
 };
-use Leonardo8896\Hydrignis\Model\FireAccident;
 
 
 class DevicesController
@@ -169,7 +173,17 @@ class DevicesController
             return;
         }
 
-        $newDevice = $deviceRepository->createDevice($serialNumber, $name, $type, $localtion, $user->email);
+        if ($type == 'igniszero') {
+            $device = new IgnisZero($serialNumber, $name, $localtion, $type);
+        } else if ($type == 'hydralize') {
+            $device = new Hydralize($serialNumber, $name, $localtion, $type);
+        } else {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Invalid device type']);
+            return;
+        }
+        $newDevice = $deviceRepository->createDevice($device, $user);
         if ($newDevice) {
             http_response_code(201);
             header('Content-Type: application/json');
@@ -219,7 +233,7 @@ class DevicesController
         $gasAccident = new GasAccident($date, $time, $serialNumber);
         $gasAccidentRepository = new GasAccidentRepository(ConnectionCreator::createPDOConnection());
 
-        if ($gasAccidentRepository->save($gasAccident)) {
+        if ($gasAccidentRepository->save($gasAccident, $user->email)) {
             http_response_code(200);
             header('Content-Type: application/json');
             echo json_encode(['message' => 'Gas accident recorded successfully']);
@@ -235,7 +249,7 @@ class DevicesController
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
-        if (!isset($input['serial_number']) || !isset($input['water_leak']) || !isset($input['humidity']) || !isset($input['temperature']) || !isset($input['gas_level'])) {
+        if (!isset($input['serial_number']) || !isset($input['energy_consumption'])) {
             http_response_code(400);
             header('Content-Type: application/json');
             echo json_encode(['error' => 'Some information is missing']);
@@ -248,7 +262,7 @@ class DevicesController
 
         $dailyLog = new IgnisZeroDailyLog($serialNumber, $date, $energyConsumption);
         $dailyLogRepository = new IgnisZeroDailyLogRepository(ConnectionCreator::createPDOConnection());
-        $newLog = $dailyLogRepository->saveDailyLog($dailyLog);
+        $newLog = $dailyLogRepository->saveDailyLog($dailyLog, $user->email);
 
         if ($newLog) {
             http_response_code(201);
@@ -270,7 +284,7 @@ class DevicesController
     {
         $input = json_decode(file_get_contents('php://input'), true);
 
-        if (!isset($input['serial_number']) || !isset($input['ph_level']) || !isset($input['turbidity']) || !isset($input['temperature']) || !isset($input['dissolved_oxygen'])) {
+        if (!isset($input['serial_number']) || !isset($input['water_production']) || !isset($input['energy_production']) || !isset($input['battery_consumption'])) {
             http_response_code(400);
             header('Content-Type: application/json');
             echo json_encode(['error' => 'Some information is missing']);
@@ -280,12 +294,12 @@ class DevicesController
         $serialNumber = $input['serial_number'];
         $date = date('Y-m-d');
         $waterProduction = $input["water_production"];
-        $energyComsumption = $input["energy_consumption"];
+        $energyProduction = $input["energy_production"];
         $batteryComsumption = $input["battery_consumption"];
 
-        $dailyLog = new HydralizeDailyLog($serialNumber, $date, $waterProduction, $energyComsumption, $batteryComsumption);
+        $dailyLog = new HydralizeDailyLog($serialNumber, $date, $waterProduction, $energyProduction, $batteryComsumption);
         $dailyLogRepository = new HydralizeDailyLogRepository(ConnectionCreator::createPDOConnection());
-        $newLog = $dailyLogRepository->saveDailyLog($dailyLog);
+        $newLog = $dailyLogRepository->saveDailyLog($dailyLog, $user);
 
         if ($newLog) {
             http_response_code(201);
