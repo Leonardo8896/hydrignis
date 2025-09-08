@@ -7,6 +7,8 @@ use Leonardo8896\Hydrignis\Model\{
     Device
 };
 
+use Leonardo8896\Hydrignis\Model\User;
+
 class DeviceRepository
 {
     public function __construct(
@@ -75,8 +77,14 @@ class DeviceRepository
         );
     }
 
-    public function createDevice(string $serialNumber, string $name, string $type, string $location, string $userEmail): Device|bool
+    public function createDevice(Device $device, User $user): Device|bool
     {
+        $name = $device->name;
+        $location = $device->location;
+        $type = $device->type;
+        $serialNumber = $device->serialNumber;
+        $userEmail = $user->email;
+
         $query = $this->pdo->prepare("INSERT INTO DEVICES (serial_number, name, type, location, USERS_email) VALUES (:serial_number, :name, :type, :location, :user_email)");
         $query->bindParam(":serial_number", $serialNumber);
         $query->bindParam(":name", $name);
@@ -84,8 +92,19 @@ class DeviceRepository
         $query->bindParam(":location", $location);
         $query->bindParam(":user_email", $userEmail);
         $result = $query->execute();
+
         if($result) {
             if ($type == "igniszero") {
+                $query2 = $this->pdo->prepare("INSERT INTO IGNISZERO (device_serial_number, device_USERS_email) VALUES (:serial_number, :user_email)");
+                $query2->bindParam(":serial_number", $serialNumber);
+                $query2->bindParam(":user_email", $userEmail);
+                if (!$query2->execute()) {
+                    // If the second insert fails, you might want to rollback the first insert
+                    $this->pdo->prepare("DELETE FROM DEVICES WHERE serial_number = :serial_number")
+                        ->execute([':serial_number' => $serialNumber]);
+                    return false;
+                }
+
                 return $this->hydrateIgnisZero([
                     'serial_number' => $serialNumber,
                     'name' => $name,
@@ -94,6 +113,16 @@ class DeviceRepository
                     'last_connection' => null
                 ]);
             } else if ($type == 'hydralize') {
+                $query2 = $this->pdo->prepare('INSERT INTO HYDRALIZE (device_serial_number, device_USERS_email) VALUES (:serial_number, :user_email)');
+                $query2->bindParam(':serial_number', $serialNumber);
+                $query2->bindParam(':user_email', $userEmail);
+                if (!$query2->execute()) {
+                    // If the second insert fails, you might want to rollback the first insert
+                    $this->pdo->prepare('DELETE FROM DEVICES WHERE serial_number = :serial_number')
+                        ->execute([':serial_number' => $serialNumber]);
+                    return false;
+                }
+
                 return $this->hydrateHydralize([
                     'serial_number' => $serialNumber,
                     'name' => $name,
