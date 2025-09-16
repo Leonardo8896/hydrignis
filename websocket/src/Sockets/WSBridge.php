@@ -2,8 +2,10 @@
 namespace Hydrignis\Websocket\Sockets;
 
 use Hydrignis\Websocket\Model\IgnisZeroPlayload;
+use Hydrignis\Websocket\Model\UserPlayload;
 use Hydrignis\Websocket\Service\AccountService;
-use Hydrignis\Websocket\Service\DeviceOwnerService;
+use Hydrignis\Websocket\Service\DeviceService;
+use Leonardo8896\Hydrignis\Model\User;
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use Ratchet\WebSocket\WsConnection;
@@ -23,11 +25,11 @@ class WSBridge implements MessageComponentInterface {
         // Verificando os parâmetros da query
         $query = $conn->httpRequest->getUri()->getQuery();
         parse_str($query, $params);
-        echo var_dump($params);
+        // echo var_dump($params);
 
-        if (isset($params["serial_number"]) && isset($params["type"])) {
+        if (isset($params["serial_number"])) {
             // echo "teste";
-            $linkResult = $this->linkDevice($params["serial_number"], $params["type"], $conn);
+            $linkResult = $this->linkDevice($params["serial_number"], $conn);
             if(!$linkResult) {
                 $conn->send("Dispositivo não cadastrado ou dados incorretos.");
                 $conn->close();
@@ -56,66 +58,61 @@ class WSBridge implements MessageComponentInterface {
 
     public function onMessage(ConnectionInterface $from, $msg): void
     {
-        echo var_dump($msg);
+        // echo var_dump($msg);
         // echo var_dump(isset($this->meta[$from]));
-        // if(isset($this->meta[$from])) {
-        //     $users = $this->connections[$this->meta[$from]["user_email"]]["mobile"];
-        //     echo $users->count().PHP_EOL;
-        //     foreach($users as $user) {
-        //         echo var_dump($users[$user]);
-        //         try {
-        //             $playload = new IgnisZeroPlayload($msg);
-        //         } catch (\InvalidArgumentException $e) {
-        //             echo "Invalid payload: ".$e->getMessage().PHP_EOL;
-        //             return;
-        //         }
-        //         $decodedMsg = $playload->dataLoad()->getIgnislog();
-        //         echo var_dump($decodedMsg);
-        //         $user->send($decodedMsg);
-        //     }
-        // }
-        // if ($this->devices->contains($from)) {
-        //     // $array = array_values(unpack('f*',$msg));
-        //     // var_dump(value: $array);
-        //     // echo (strlen($msg)/4).PHP_EOL;
-        //     $json = json_decode($msg);
-        //     if (json_last_error() === JSON_ERROR_NONE) {
-        //         foreach ($this->mobiles as $mobile) {
-        //             $mobile->send($json);
-        //             return;
-        //         }
-        //     }
-        //     $ignis = new IgnisPlayload($msg);
-        //     $playload = $ignis->getIgnislog();
-        //     if (!$playload) {
-        //         return;
-        //     }
-        //     // echo json_encode($playload).PHP_EOL;
-        //     foreach ($this->mobiles as $mobile) {
-        //         $mobile->send(json_encode($playload));
-        //     }
-        //     return;
-        // }
+        if(isset($this->meta[$from])) {
+            if (isset($this->meta[$from]["serial_number"])) {
 
-        // if($this->mobiles->contains($from)) {
-        //     foreach ($this->devices as $device) {
-        //         $device->send($msg);
-        //     }
-        // }
+                $users = $this->connections[$this->meta[$from]["user_email"]]["mobile"];
+                // echo $users->count().PHP_EOL;
+                foreach($users as $user) {
+                    // echo var_dump($users[$user]);
+                    try {
+                        $playload = new IgnisZeroPlayload($msg);
+                    } catch (\InvalidArgumentException $e) {
+                        echo "Invalid payload: ".$e->getMessage().PHP_EOL;
+                        return;
+                    }
+                    $decodedMsg = $playload->dataLoad()->getIgnislog();
+                    // echo var_dump($decodedMsg);
+                    // $user->send($msg);
+                }
+            } else {
+                try {
+                    $playload = UserPlayload::load($msg);
+                } catch (\InvalidArgumentException $e) {
+                    $from->send("Invalid command ($msg)");
+                    echo "Invalid payload: ".$e->getMessage().PHP_EOL;
+                    return;
+                }
+
+                $device = $this->findDeviceBySerial($playload, $this->meta[$from]["user_email"]);
+                if(!$device) {
+                    $from->send("Device not found ({$playload->serialNumber})");
+                    echo "Device not found ({$playload->serialNumber})".PHP_EOL;
+                    return;
+                }
+                $device->send($playload->command);
+            }
+        }
     }
 
     public function onClose(ConnectionInterface $conn): void
     {
-        // The connection is closed, remove it, as we can no longer send it messages
-        // if ($this->devices->contains($conn)) {
-        //     $this->devices->detach($conn);
-        //     echo "Dropped connection device ({$conn->resourceId})".PHP_EOL;
-        //     return;
-        // }
+        $device = $this->meta[$conn];
 
-        // if($this->mobiles->contains($conn)) {
-        //     $this->mobiles->detach($conn);
-        //     echo "Dropped connection mobile ({$conn->resourceId})".PHP_EOL;
+        if(isset($device["type"])) {
+            $this->connections[$device["user_email"]]["devices"][$device["type"]]->detach($conn);
+            echo "Dropped connection from {$device["user_email"]} by device {$device["serial_number"]} ({$conn->resourceId})";
+        } else {
+            $this->connections[$device["user_email"]]["mobile"]->detach($conn);
+            echo "Dropped connection from {$device["user_email"]} ({$conn->resourceId})";
+        }
+
+        $this->meta->detach($conn);
+
+        // foreach ($this->meta as $connection) {
+        //     echo var_dump($this->meta[$connection]);
         // }
     }
 
@@ -124,6 +121,19 @@ class WSBridge implements MessageComponentInterface {
         // echo "An error has occurred: {$e->getMessage()}\n";
 
         // $conn->close();
+    }
+
+    private function findDeviceBySerial(UserPlayload $playload, string $user_email): ConnectionInterface|null
+    {
+        $devices = $this->connections[$user_email]["devices"][$playload->targetType];
+        foreach($devices as $device) {
+            // echo $devices[$device]["serial_number"].PHP_EOL;
+            if($devices[$device]["serial_number"] == $playload->serialNumber) {
+                return $device;
+            }
+        }
+
+        return null;
     }
 
     private function createConnection(string $user_email): void
@@ -137,9 +147,12 @@ class WSBridge implements MessageComponentInterface {
         ];
     }
 
-    private function linkDevice(string $serialNumber, string $type, ConnectionInterface $conn): bool
+    private function linkDevice(string $serialNumber, ConnectionInterface $conn): bool
     {
-        $owner = DeviceOwnerService::find($serialNumber);
+        $device = DeviceService::find($serialNumber);
+        $owner = $device ? $device["USERS_email"] : false;
+        $type = $device ? $device["type"] : false;
+
 
         if (!$owner) {
             return false;
@@ -170,7 +183,8 @@ class WSBridge implements MessageComponentInterface {
         $this->meta[$conn] = [
             "user_email"=> $owner,
             "serial_number" => $serialNumber,
-            "connected_at"=> $connectionTime
+            "connected_at"=> $connectionTime,
+            "type" => $type
         ];
 
         echo "New device connection from {$owner} - {$type} ({$conn->resourceId})".PHP_EOL;
