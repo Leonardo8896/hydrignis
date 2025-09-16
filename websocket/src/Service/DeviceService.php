@@ -3,11 +3,11 @@
 namespace Hydrignis\Websocket\Service;
 use Hydrignis\Websocket\Database\Core\ConnectionCreator;
 
-class DeviceOwnerService {
-    static public function find(int $serialNumber): false|string
+class DeviceService {
+    static public function find(int $serialNumber): false|array
     {
         $pdo = ConnectionCreator::createPDOConnection();
-        $query = $pdo->prepare("SELECT USERS_email FROM devices WHERE serial_number = :serial_number");
+        $query = $pdo->prepare("SELECT * FROM DEVICES WHERE serial_number = :serial_number");
         $query->bindValue(":serial_number", $serialNumber);
         $resultQuery = $query->execute();
 
@@ -20,6 +20,6 @@ class DeviceOwnerService {
         // echo "Query result: " . var_export($result, true) . PHP_EOL;
         
         // Retorne o resultado ou false, dependendo do caso
-        return $result ? $result['USERS_email'] : false;
+        return $result ? $result : false;
     }
 }
