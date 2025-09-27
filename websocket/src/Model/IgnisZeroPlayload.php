@@ -28,9 +28,8 @@ class IgnisZeroPlayload
     {
         $playload = substr($this->bin, 2);
         $data = explode("\xAA\x55", $playload);
-        echo var_dump($playload);
-        echo var_dump($data);
-        echo var_dump($this->bin);
+        // echo var_dump($data);
+        // echo var_dump($this->bin);
         $this->image_array = $this->bin8ToArrayFloat($data[0]); 
         $this->gas = $this->bin8ToInt($data[1]);
         $this->status = $this->bin8ToInt($data[2]);
@@ -51,19 +50,21 @@ class IgnisZeroPlayload
         // }
 
         $frame = array_values(unpack('g*', $bin));
-
+        echo var_dump($frame);
         return $frame;
     }
 
     private function bin8ToFloat($bin): float
     {
         $frame = unpack('g', $bin);
+        echo var_dump($frame);
         return $frame[1];
     }
 
     private function bin8ToInt($bin): int
     {
         $frame = unpack('V', $bin);
+        echo var_dump($frame);
         return $frame[1];
     }
 

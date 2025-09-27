@@ -17,10 +17,11 @@ $requestPath = $_SERVER['PATH_INFO'] ?? '/';
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $header = getallheaders();
 
+
 $key = "$requestPath|$requestMethod";
 if (array_key_exists($key,$routes)) {
     if ($routes[$key]['auth'] && isset($header['Authorization'])) {
-        $token = str_replace('Barier ', '', $header['Authorization']);
+        $token = str_replace('Bearer ', '', $header['Authorization']);
         $user = AccountService::checkToken($token);
         if (!$user) {
             http_response_code(401);

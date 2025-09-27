@@ -20,5 +20,5 @@ $ws = new WsServer(new WSBridge());
 $ws->setStrictSubProtocolCheck(false);
 
 
-$server = IoServer::factory(new HttpServer($ws), 9001, '0.0.0.0');
+$server = IoServer::factory(new HttpServer($ws), 9002, '0.0.0.0');
 $server->run();

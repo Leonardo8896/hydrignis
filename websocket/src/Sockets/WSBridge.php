@@ -60,10 +60,17 @@ class WSBridge implements MessageComponentInterface {
     {
         // echo var_dump($msg);
         // echo var_dump(isset($this->meta[$from]));
+        echo "Message from {$from->resourceId}: ";
         if(isset($this->meta[$from])) {
             if (isset($this->meta[$from]["serial_number"])) {
+                echo "len=", strlen($msg),
+                " head=", bin2hex(substr($msg, 0, 4)),
+                " mark2@", 2 + 768*4, "=", bin2hex(substr($msg, 2 + 768*4, 2)),
+                PHP_EOL;
 
+                // echo var_dump(bin2hex($msg));
                 $users = $this->connections[$this->meta[$from]["user_email"]]["mobile"];
+
                 // echo $users->count().PHP_EOL;
                 foreach($users as $user) {
                     // echo var_dump($users[$user]);
@@ -74,8 +81,8 @@ class WSBridge implements MessageComponentInterface {
                         return;
                     }
                     $decodedMsg = $playload->dataLoad()->getIgnislog();
-                    // echo var_dump($decodedMsg);
-                    // $user->send($msg);
+                    echo var_dump($decodedMsg);
+                    $user->send(json_encode($decodedMsg));
                 }
             } else {
                 try {
