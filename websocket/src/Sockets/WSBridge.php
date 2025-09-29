@@ -1,6 +1,7 @@
 <?php
 namespace Hydrignis\Websocket\Sockets;
 
+use Hydrignis\Websocket\Model\HydralizePlayload;
 use Hydrignis\Websocket\Model\IgnisZeroPlayload;
 use Hydrignis\Websocket\Model\UserPlayload;
 use Hydrignis\Websocket\Service\AccountService;
@@ -39,15 +40,17 @@ class WSBridge implements MessageComponentInterface {
             return;
         }
 
-        $auth = $conn->httpRequest->getHeader("Authorization");
+        $auth = $params["token"];
+        
         if(!$auth) {
             $conn->send("Token não fornecido.");
             $conn->close();
             echo "Connection refused".PHP_EOL;
             return;
         }
-        $token = str_replace('Bearer ', '', $auth[0] ?? '');
-        $linkResult = $this->linkUser($token, $conn);
+        //$token = str_replace('Bearer ', '', $auth[0] ?? '');
+
+        $linkResult = $this->linkUser($auth, $conn);
         if (!$linkResult) {
             $conn->send("Token inválido ou expirado.");
             $conn->close();
@@ -60,13 +63,14 @@ class WSBridge implements MessageComponentInterface {
     {
         // echo var_dump($msg);
         // echo var_dump(isset($this->meta[$from]));
-        echo "Message from {$from->resourceId}: ";
+        // echo $this->meta[$from];
+        // echo "Message from {$from->resourceId}: ";
         if(isset($this->meta[$from])) {
             if (isset($this->meta[$from]["serial_number"])) {
-                echo "len=", strlen($msg),
-                " head=", bin2hex(substr($msg, 0, 4)),
-                " mark2@", 2 + 768*4, "=", bin2hex(substr($msg, 2 + 768*4, 2)),
-                PHP_EOL;
+                // echo "len=", strlen($msg),
+                // " head=", bin2hex(substr($msg, 0, 4)),
+                // " mark2@", 2 + 768*4, "=", bin2hex(substr($msg, 2 + 768*4, 2)),
+                // PHP_EOL;
 
                 // echo var_dump(bin2hex($msg));
                 $users = $this->connections[$this->meta[$from]["user_email"]]["mobile"];
@@ -75,13 +79,20 @@ class WSBridge implements MessageComponentInterface {
                 foreach($users as $user) {
                     // echo var_dump($users[$user]);
                     try {
-                        $playload = new IgnisZeroPlayload($msg);
+                        switch($this->meta[$from]["type"]) {
+                            case "igniszero":
+                                $playload = new IgnisZeroPlayload($msg);
+                                break;
+                            case "hydralize":
+                                $playload = new HydralizePlayload($msg);
+                                break;
+                        }
                     } catch (\InvalidArgumentException $e) {
                         echo "Invalid payload: ".$e->getMessage().PHP_EOL;
                         return;
                     }
-                    $decodedMsg = $playload->dataLoad()->getIgnislog();
-                    echo var_dump($decodedMsg);
+                    $decodedMsg = $playload->dataLoad()->getlog();
+                    // echo var_dump($decodedMsg);
                     $user->send(json_encode($decodedMsg));
                 }
             } else {
