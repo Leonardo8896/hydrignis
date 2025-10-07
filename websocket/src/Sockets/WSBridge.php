@@ -91,7 +91,10 @@ class WSBridge implements MessageComponentInterface {
                         echo "Invalid payload: ".$e->getMessage().PHP_EOL;
                         return;
                     }
-                    $decodedMsg = $playload->dataLoad()->getlog();
+                    $decodedMsg = [
+                        "serial_number" => $this->meta[$from]["serial_number"],
+                        $playload->dataLoad()->getlog()
+                    ];
                     // echo var_dump($decodedMsg);
                     $user->send(json_encode($decodedMsg));
                 }
