@@ -13,7 +13,7 @@ $enviroment = new Dotenv();
 $enviroment->load(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'.env');
 
 $routes = require_once "../config/routes.php";
-$requestPath = $_SERVER['PATH_INFO'] ?? '/';
+$requestPath = $_SERVER['REQUEST_URI'] ?? '/';
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $header = getallheaders();
 
