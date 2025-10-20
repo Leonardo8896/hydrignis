@@ -101,6 +101,7 @@ class WSBridge implements MessageComponentInterface {
                     $user->send(json_encode($decodedMsg));
                 }
             } else {
+                if (substr($msg, 0, 2) == "CK")
                 try {
                     $playload = UserPlayload::load($msg);
                 } catch (\InvalidArgumentException $e) {
@@ -193,6 +194,7 @@ class WSBridge implements MessageComponentInterface {
                     "serial_number" => $serialNumber,
                     "connected_at" => $connectionTime
                 ];
+                break;
             case "hydralize":
                 $this->connections[$owner]["devices"]["hydralize"][$conn] = [
                     "serial_number" => $serialNumber,
@@ -243,5 +245,30 @@ class WSBridge implements MessageComponentInterface {
 
         echo "New mobile connection from {$email} ({$conn->resourceId})".PHP_EOL;
         return true;
+    }
+
+    public function sendConnectedDevices(): void
+    {
+        // echo PHP_EOL."----------".PHP_EOL;
+        foreach ($this->connections as $user_email => $connection) {
+            $result = [
+                "devices" => [],
+                "mobile" => $connection["mobile"]->count()
+            ];
+            foreach ($connection["devices"] as $type => $devices) {
+                foreach ($devices as $device) {
+                    // echo var_dump($devices[$device]);
+                    $result["devices"][] = [
+                        "type" => $type,
+                        "serial_number" => $devices[$device]["serial_number"],
+                        "connected_at" => $devices[$device]["connected_at"]
+                    ];
+                }
+            }
+
+            foreach ($connection["mobile"] as $mobile) {
+                $mobile->send(json_encode($result));
+            }
+        }
     }
 }
