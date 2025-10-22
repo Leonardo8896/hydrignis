@@ -74,6 +74,7 @@ class WSBridge implements MessageComponentInterface {
 
                 // echo var_dump(bin2hex($msg));
                 $users = $this->connections[$this->meta[$from]["user_email"]]["mobile"];
+                $decodedMsg = [];
 
                 // echo $users->count().PHP_EOL;
                 foreach($users as $user) {
@@ -81,9 +82,11 @@ class WSBridge implements MessageComponentInterface {
                     try {
                         switch($this->meta[$from]["type"]) {
                             case "igniszero":
+                                $decodedMsg["event"] = "igniszero_playload";
                                 $playload = new IgnisZeroPlayload($msg);
                                 break;
                             case "hydralize":
+                                $decodedMsg["event"] = "hydralize_playload";
                                 $playload = new HydralizePlayload($msg);
                                 break;
                         }
@@ -91,13 +94,13 @@ class WSBridge implements MessageComponentInterface {
                         echo "Invalid payload: ".$e->getMessage().PHP_EOL;
                         return;
                     }
-                    $decodedMsg = $playload->dataLoad()->getlog();
+                    $decodedMsg["data"] = $playload->dataLoad()->getlog();
                     // [
                     //     "serial_number" => $this->meta[$from]["serial_number"],
                     //     $playload->dataLoad()->getlog()
                     // ];
                     // echo var_dump($decodedMsg);
-                    $decodedMsg["serial_number"] = $this->meta[$from]["serial_number"];
+                    $decodedMsg["data"]["serial_number"] = $this->meta[$from]["serial_number"];
                     $user->send(json_encode($decodedMsg));
                 }
             } else {
@@ -249,7 +252,10 @@ class WSBridge implements MessageComponentInterface {
 
     public function sendConnectedDevices(): void
     {
-        // echo PHP_EOL."----------".PHP_EOL;
+        $msg = [
+            "event" => "connected_devices",
+            "data" => []
+        ];
         foreach ($this->connections as $user_email => $connection) {
             $result = [
                 "devices" => [],
@@ -257,17 +263,19 @@ class WSBridge implements MessageComponentInterface {
             ];
             foreach ($connection["devices"] as $type => $devices) {
                 foreach ($devices as $device) {
-                    // echo var_dump($devices[$device]);
+                    $meta = $devices[$device];
                     $result["devices"][] = [
                         "type" => $type,
-                        "serial_number" => $devices[$device]["serial_number"],
-                        "connected_at" => $devices[$device]["connected_at"]
+                        "serial_number" => $meta["serial_number"],
+                        "connected_at" => $meta["connected_at"]
                     ];
                 }
             }
 
+            $msg['data'] = $result;
+
             foreach ($connection["mobile"] as $mobile) {
-                $mobile->send(json_encode($result));
+                $mobile->send(json_encode($msg));
             }
         }
     }
