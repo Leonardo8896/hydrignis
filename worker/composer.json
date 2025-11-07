@@ -1,0 +1,19 @@
+{
+    "name": "pkafo/worker",
+    "type": "project",
+    "require": {
+        "react/socket": "^1.16",
+        "react/event-loop": "^1.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pkafo\\Worker\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "leonardo8896",
+            "email": "pkafonso8896@gmail.com"
+        }
+    ]
+}
