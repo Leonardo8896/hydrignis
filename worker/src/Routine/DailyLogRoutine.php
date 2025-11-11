@@ -2,7 +2,7 @@
 
 namespace Leonardo8896\Hydrignis\Routine;
 use Leonardo8896\Hydrignis\Database\Core\ConnectionCreator;
-use Leonardo8896\Hydrignis\Repository\{HydralizeDailyLogRepository};
+use Leonardo8896\Hydrignis\Database\Repository\{HydralizeDailyLogRepository};
 
 /*
 Estrutura padrão de arquivo de log
@@ -27,6 +27,7 @@ class DailyLogRoutine
     {
         echo "Running Daily Log Routine...\n";
         $hydralizeDailyLogRepository = new HydralizeDailyLogRepository(ConnectionCreator::createPDOConnection());
+        
         $tmp_dir = scandir(__DIR__ . "/../../..".$_ENV['HYDRIGNIS_DAILY_LOG_DIR']);
 
         if(count($tmp_dir) == 2) {
@@ -58,7 +59,11 @@ class DailyLogRoutine
                 foreach($aggregatedLog as $key => $value) {
                     $aggregatedLog[$key] = $value / $i;
                 }
-                $result = $hydralizeDailyLogRepository->saveHydralizeLog($sn, $aggregatedLog, $email);
+                if($sn[0] === "1") {
+
+                } else if($sn[0] === "2") {
+                    $result = $hydralizeDailyLogRepository->saveHydralizeLog($sn, $aggregatedLog, $email);
+                }
                 if (!$result) {
                     echo "Failed to save log for SN: $sn, Email: $email\n";
                 } else {
