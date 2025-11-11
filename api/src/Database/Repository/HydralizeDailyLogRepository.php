@@ -10,10 +10,11 @@ class HydralizeDailyLogRepository
         private \PDO $pdo
     ){}
 
-    public function getDailyLogsByDeviceSerial(int $deviceSerial): array
+    public function getDailyLogsByDeviceSerial(string $deviceSerial, int $days): array
     {
-        $query = $this->pdo->prepare("SELECT * FROM HYDRALIZE_DAILY_LOG WHERE HYDRALIZE_device_serial_number = :serial_number");
+        $query = $this->pdo->prepare("SELECT * FROM HYDRALIZE_DAILY_LOG WHERE HYDRALIZE_device_serial_number = :serial_number ORDER BY date DESC LIMIT :days");
         $query->bindParam(":serial_number", $deviceSerial);
+        $query->bindParam(":days", $days, \PDO::PARAM_INT);
         $query->execute();
 
         $results = $query->fetchAll(\PDO::FETCH_ASSOC);
@@ -34,14 +35,49 @@ class HydralizeDailyLogRepository
         return array_map([$this, "hydrateDailyLog"], $results);
     }
 
+    public function getGeneral(string $email): array
+    {
+        $query = $this->pdo->prepare(
+            "SELECT 
+                DATE_FORMAT(date, '%Y-%m') AS date,
+                HYDRALIZE_device_USERS_email,
+                SUM(water_production) AS total_water,
+                SUM(energy_production) AS total_energy,
+                SUM(battery_consumption) AS total_battery
+            FROM HYDRALIZE_DAILY_LOG
+            WHERE HYDRALIZE_device_USERS_email = 'teste2@gmail.com'
+            GROUP BY HYDRALIZE_device_USERS_email, DATE_FORMAT(date, '%Y-%m')
+            ORDER BY date;"
+        );
+        $query->execute();
+
+        $results = $query->fetchAll(\PDO::FETCH_ASSOC);
+        $result_array = [];
+        foreach($results as $result) {
+            $result_array[] = $this->hydrateGeneralHydralizeDailyLog($result)->toArray();
+        }
+        return $result_array;
+    }
+
+    private function hydrateGeneralHydralizeDailyLog(array $data): HydralizeDailyLog
+    {
+        return new HydralizeDailyLog(
+            $data['date'],
+            $data['total_water'],
+            $data['total_energy'],
+            $data['total_battery'],
+        );
+    }
+
     private function hydrateDailyLog(array $data): HydralizeDailyLog
     {
         return new HydralizeDailyLog(
-            $data['id'],
             $data['date'],
             $data['water_consumption'],
             $data['energy_consumption'],
             $data['battery_consumption'],
+            $data['id'],
+            $data['HYDRALIZE_device_serial_number'],
         );
     }
 
@@ -65,12 +101,12 @@ class HydralizeDailyLogRepository
         if ($query->execute()) {
             $id = (int)$this->pdo->lastInsertId();
             return new HydralizeDailyLog(
-                $dailyLog->serialNumber,
                 $dailyLog->date,
                 $dailyLog->water_production,
                 $dailyLog->energy_production,
                 $dailyLog->battery_consumption,
-                $id
+                $id,
+                $dailyLog->serialNumber,
             );
         }
         return null;

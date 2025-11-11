@@ -57,4 +57,8 @@ return [
         "handler"=> [DevicesController::class, "createHydralizeDailyLog"],
         "auth"=> true,
     ],
+    "/devices/statistics|GET"=> [
+        "handler"=> [DevicesController::class, "allStatistics"],
+        "auth"=> true,
+    ],
 ];

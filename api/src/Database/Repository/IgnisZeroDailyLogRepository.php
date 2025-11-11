@@ -33,12 +33,49 @@ class IgnisZeroDailyLogRepository
         return array_map([$this, "hydrateDailyLog"], $results);
     }
 
+    public function getGeneral(string $email): array
+    {
+        $query = $this->pdo->prepare(
+            "SELECT 
+                DATE_FORMAT(date, '%Y-%m') AS date, 
+                IGNISZERO_device_USERS_email, 
+                SUM(energy_consumption) AS total_energy,
+                SUM(gas_accidents) AS total_gas_accidents,
+                SUM(fire_accidents) AS total_fire_accidents
+            FROM IGNISZERO_DAILY_LOG
+            WHERE IGNISZERO_device_USERS_email = :email
+            GROUP BY IGNISZERO_device_USERS_email, DATE_FORMAT(date, '%Y-%m')
+            ORDER BY date;"
+        );
+        $query->bindParam(":email", $email);
+        $query->execute();
+
+        $results = $query->fetchAll(\PDO::FETCH_ASSOC);
+        $result_array = [];
+        foreach($results as $result) {
+            $result_array[] = $this->hydrateGeneralDailyLog($result)->toArray();
+        }
+        return $result_array;
+    }
+
+    private function hydrateGeneralDailyLog(array $data): IgnisZeroDailyLog
+    {
+        return new IgnisZeroDailyLog(
+            $data['date'],
+            $data['energy_consumption'],
+            $data['gas_accidents'],
+            $data['fire_accidents']
+        );
+    }
+
     private function hydrateDailyLog(array $data): IgnisZeroDailyLog
     {
         return new IgnisZeroDailyLog(
-            $data['id'],
             $data['date'],
-            $data['energy_consumption']
+            $data['energy_consumption'],
+            $data['gas_accidents'],
+            $data['fire_accidents'],
+            $data['id'],
         );
     }
 
@@ -57,10 +94,12 @@ class IgnisZeroDailyLogRepository
         if($query->execute()) {
             $id = (int)$this->pdo->lastInsertId();
             return new IgnisZeroDailyLog(
-                $data->serialNumber,
                 $data->date,
                 $data->energyConsumption,
-                $id
+                $data->gasAccidents,
+                $data->fireAccidents,
+                $id,
+                $data->serialNumber,
             );
         }
         return null;

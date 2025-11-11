@@ -316,4 +316,24 @@ class DevicesController
             return;
         }
     }
+
+    static public function allStatistics(User $user): void
+    {
+        $hydralizeDailyLogRepository = new HydralizeDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $hydralizeStatistics = $hydralizeDailyLogRepository->getGeneral($user->email);
+
+        $IgnisZeroDailyLogRepository = new IgnisZeroDailyLogRepository(ConnectionCreator::createPDOConnection());
+        $ignisZeroStatistics = $IgnisZeroDailyLogRepository->getGeneral($user->email);
+
+        http_response_code(200);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'user' => [
+                'email' => $user->email,
+                'name' => $user->name
+            ],
+            'hydralize_statistics' => $hydralizeStatistics,
+            'igniszero_statistics' => $ignisZeroStatistics
+        ]);
+    }
 }
