@@ -18,7 +18,7 @@ class HydralizeDailyLog
         $array = [
             "date" => $this->date,
             "water_production" => $this->water_production,
-            "energy_consumption" => $this->energy_production,
+            "energy_production" => $this->energy_production,
             "battery_consumption" => $this->battery_consumption,
         ];
 
